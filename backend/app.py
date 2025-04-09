@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app)  # Habilitar CORS para todas las rutas
 
 # Configuración de la base de datos PostgreSQL
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:password@localhost/bus_management'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin1234@localhost/bus_management'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
