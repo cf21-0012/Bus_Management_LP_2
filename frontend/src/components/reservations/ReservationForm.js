@@ -1,5 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { 
+  Container, 
+  Typography, 
+  Box, 
+  TextField, 
+  Button, 
+  Paper, 
+  Grid, 
+  Alert,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
+} from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { Save as SaveIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { getSchedules, createReservation } from '../../services/api';
 
 const ReservationForm = () => {
@@ -9,7 +28,7 @@ const ReservationForm = () => {
     scheduleId: '',
     passengerName: '',
     seatNumber: '',
-    reservationDate: new Date().toISOString().split('T')[0]
+    reservationDate: new Date()
   });
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -40,11 +59,25 @@ const ReservationForm = () => {
     });
   };
 
+  const handleDateChange = (newValue) => {
+    setFormData({
+      ...formData,
+      reservationDate: newValue
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       setLoading(true);
-      await createReservation(formData);
+      
+      // Convertir fecha a formato ISO para enviar al servidor
+      const dataToSend = {
+        ...formData,
+        reservationDate: formData.reservationDate.toISOString()
+      };
+      
+      await createReservation(dataToSend);
       setLoading(false);
       navigate('/reservations');
     } catch (err) {
@@ -60,96 +93,113 @@ const ReservationForm = () => {
   };
 
   if (loading && schedules.length === 0) {
-    return <div>Cargando...</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h2>Agregar Reserva</h2>
-      </div>
-      <div className="card-body">
-        {error && <div className="alert alert-danger">{error}</div>}
-        
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="scheduleId" className="form-label">Horario</label>
-            <select
-              id="scheduleId"
-              name="scheduleId"
-              className="form-control"
-              value={formData.scheduleId}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Seleccionar Horario</option>
-              {schedules.map((schedule) => (
-                <option key={schedule.id} value={schedule.id}>
-                  {schedule.route.routeName} ({schedule.route.origin} - {schedule.route.destination}) - 
-                  Autobús: {schedule.bus.busNumber} - 
-                  Salida: {formatDateTime(schedule.departureTime)}
-                </option>
-              ))}
-            </select>
-          </div>
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Container maxWidth="md">
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            Agregar Reserva
+          </Typography>
           
-          <div className="form-group">
-            <label htmlFor="passengerName" className="form-label">Nombre del Pasajero</label>
-            <input
-              type="text"
-              id="passengerName"
-              name="passengerName"
-              className="form-control"
-              value={formData.passengerName}
-              onChange={handleChange}
-              required
-            />
-          </div>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           
-          <div className="form-group">
-            <label htmlFor="seatNumber" className="form-label">Número de Asiento</label>
-            <input
-              type="number"
-              id="seatNumber"
-              name="seatNumber"
-              className="form-control"
-              value={formData.seatNumber}
-              onChange={handleChange}
-              required
-              min="1"
-              max="50"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="reservationDate" className="form-label">Fecha de Reserva</label>
-            <input
-              type="date"
-              id="reservationDate"
-              name="reservationDate"
-              className="form-control"
-              value={formData.reservationDate}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Guardando...' : 'Guardar'}
-            </button>
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
-              onClick={() => navigate('/reservations')}
-              style={{ marginLeft: '10px' }}
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <FormControl fullWidth margin="normal">
+                  <InputLabel id="schedule-label">Horario</InputLabel>
+                  <Select
+                    labelId="schedule-label"
+                    id="scheduleId"
+                    name="scheduleId"
+                    value={formData.scheduleId}
+                    onChange={handleChange}
+                    label="Horario"
+                    required
+                  >
+                    <MenuItem value="" disabled>
+                      Seleccionar Horario
+                    </MenuItem>
+                    {schedules.map((schedule) => (
+                      <MenuItem key={schedule.id} value={schedule.id}>
+                        {schedule.route.routeName} ({schedule.route.origin} - {schedule.route.destination}) - 
+                        Autobús: {schedule.bus.busNumber} - 
+                        Salida: {formatDateTime(schedule.departureTime)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  name="passengerName"
+                  label="Nombre del Pasajero"
+                  value={formData.passengerName}
+                  onChange={handleChange}
+                  fullWidth
+                  required
+                  margin="normal"
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  name="seatNumber"
+                  label="Número de Asiento"
+                  type="number"
+                  value={formData.seatNumber}
+                  onChange={handleChange}
+                  fullWidth
+                  required
+                  margin="normal"
+                  inputProps={{ min: 1, max: 50 }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <DatePicker
+                  label="Fecha de Reserva"
+                  value={formData.reservationDate}
+                  onChange={handleDateChange}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      margin: "normal",
+                      required: true
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    startIcon={<SaveIcon />}
+                    disabled={loading}
+                  >
+                    {loading ? 'Guardando...' : 'Guardar'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<ArrowBackIcon />}
+                    onClick={() => navigate('/reservations')}
+                  >
+                    Cancelar
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      </Container>
+    </LocalizationProvider>
   );
 };
 

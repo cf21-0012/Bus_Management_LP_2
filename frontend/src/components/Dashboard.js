@@ -1,5 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+import { 
+  Container, 
+  Grid, 
+  Card, 
+  CardContent, 
+  Typography, 
+  Button, 
+  Box,
+  CircularProgress,
+  Alert
+} from '@mui/material';
+import DirectionsBusIcon from '@mui/icons-material/DirectionsBus';
+import RouteIcon from '@mui/icons-material/Route';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber';
 import { getBuses, getRoutes, getSchedules, getReservations } from '../services/api';
 
 const Dashboard = () => {
@@ -41,46 +56,82 @@ const Dashboard = () => {
   }, []);
 
   if (loading) {
-    return <div>Cargando...</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   if (error) {
-    return <div className="alert alert-danger">{error}</div>;
+    return <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>;
   }
 
+  const dashboardItems = [
+    {
+      title: 'Autobuses',
+      count: counts.buses,
+      icon: <DirectionsBusIcon sx={{ fontSize: 60, color: 'primary.main' }} />,
+      link: '/buses',
+      color: '#bbdefb'
+    },
+    {
+      title: 'Rutas',
+      count: counts.routes,
+      icon: <RouteIcon sx={{ fontSize: 60, color: 'primary.main' }} />,
+      link: '/routes',
+      color: '#c8e6c9'
+    },
+    {
+      title: 'Horarios',
+      count: counts.schedules,
+      icon: <AccessTimeIcon sx={{ fontSize: 60, color: 'primary.main' }} />,
+      link: '/schedules',
+      color: '#fff9c4'
+    },
+    {
+      title: 'Reservas',
+      count: counts.reservations,
+      icon: <ConfirmationNumberIcon sx={{ fontSize: 60, color: 'primary.main' }} />,
+      link: '/reservations',
+      color: '#ffccbc'
+    }
+  ];
+
   return (
-    <div>
-      <h1>Dashboard</h1>
-      <div className="dashboard">
-        <div className="dashboard-card">
-          <div className="icon">🚌</div>
-          <h2>Autobuses</h2>
-          <div className="count">{counts.buses}</div>
-          <Link to="/buses" className="btn btn-primary">Ver Autobuses</Link>
-        </div>
-
-        <div className="dashboard-card">
-          <div className="icon">🛣️</div>
-          <h2>Rutas</h2>
-          <div className="count">{counts.routes}</div>
-          <Link to="/routes" className="btn btn-primary">Ver Rutas</Link>
-        </div>
-
-        <div className="dashboard-card">
-          <div className="icon">🕒</div>
-          <h2>Horarios</h2>
-          <div className="count">{counts.schedules}</div>
-          <Link to="/schedules" className="btn btn-primary">Ver Horarios</Link>
-        </div>
-
-        <div className="dashboard-card">
-          <div className="icon">🎫</div>
-          <h2>Reservas</h2>
-          <div className="count">{counts.reservations}</div>
-          <Link to="/reservations" className="btn btn-primary">Ver Reservas</Link>
-        </div>
-      </div>
-    </div>
+    <Container maxWidth="lg">
+      <Typography variant="h4" component="h1" gutterBottom>
+        Dashboard
+      </Typography>
+      
+      <Grid container spacing={3}>
+        {dashboardItems.map((item) => (
+          <Grid item xs={12} sm={6} md={3} key={item.title}>
+            <Card sx={{ height: '100%', bgcolor: item.color }}>
+              <CardContent sx={{ textAlign: 'center', py: 3 }}>
+                <Box sx={{ mb: 2 }}>
+                  {item.icon}
+                </Box>
+                <Typography variant="h5" component="h2" gutterBottom>
+                  {item.title}
+                </Typography>
+                <Typography variant="h3" component="div" sx={{ mb: 2, fontWeight: 'bold' }}>
+                  {item.count}
+                </Typography>
+                <Button 
+                  variant="contained" 
+                  component={RouterLink} 
+                  to={item.link}
+                  fullWidth
+                >
+                  Ver {item.title}
+                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
+      </Grid>
+    </Container>
   );
 };
 

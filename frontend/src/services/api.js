@@ -1,20 +1,26 @@
+// URL base de la API
 const API_URL = 'http://localhost:5000';
 
-// Funciones para autobuses
-export const getBuses = async () => {
-  const response = await fetch(`${API_URL}/buses`);
+// Función auxiliar para manejar las respuestas de fetch
+const handleResponse = async (response) => {
   if (!response.ok) {
-    throw new Error('Error al obtener autobuses');
+    const error = await response.json().catch(() => ({
+      message: 'Error de servidor'
+    }));
+    throw new Error(error.message || 'Error en la solicitud');
   }
   return response.json();
 };
 
+// Funciones para autobuses
+export const getBuses = async () => {
+  const response = await fetch(`${API_URL}/buses`);
+  return handleResponse(response);
+};
+
 export const getBusById = async (id) => {
   const response = await fetch(`${API_URL}/buses/${id}`);
-  if (!response.ok) {
-    throw new Error('Error al obtener el autobús');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const createBus = async (busData) => {
@@ -25,10 +31,7 @@ export const createBus = async (busData) => {
     },
     body: JSON.stringify(busData),
   });
-  if (!response.ok) {
-    throw new Error('Error al crear el autobús');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const updateBus = async (id, busData) => {
@@ -39,37 +42,25 @@ export const updateBus = async (id, busData) => {
     },
     body: JSON.stringify(busData),
   });
-  if (!response.ok) {
-    throw new Error('Error al actualizar el autobús');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const deleteBus = async (id) => {
   const response = await fetch(`${API_URL}/buses/${id}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    throw new Error('Error al eliminar el autobús');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 // Funciones para rutas
 export const getRoutes = async () => {
   const response = await fetch(`${API_URL}/routes`);
-  if (!response.ok) {
-    throw new Error('Error al obtener rutas');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const getRouteById = async (id) => {
   const response = await fetch(`${API_URL}/routes/${id}`);
-  if (!response.ok) {
-    throw new Error('Error al obtener la ruta');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const createRoute = async (routeData) => {
@@ -80,10 +71,7 @@ export const createRoute = async (routeData) => {
     },
     body: JSON.stringify(routeData),
   });
-  if (!response.ok) {
-    throw new Error('Error al crear la ruta');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const updateRoute = async (id, routeData) => {
@@ -94,37 +82,25 @@ export const updateRoute = async (id, routeData) => {
     },
     body: JSON.stringify(routeData),
   });
-  if (!response.ok) {
-    throw new Error('Error al actualizar la ruta');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const deleteRoute = async (id) => {
   const response = await fetch(`${API_URL}/routes/${id}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    throw new Error('Error al eliminar la ruta');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 // Funciones para horarios
 export const getSchedules = async () => {
   const response = await fetch(`${API_URL}/schedules`);
-  if (!response.ok) {
-    throw new Error('Error al obtener horarios');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const getScheduleById = async (id) => {
   const response = await fetch(`${API_URL}/schedules/${id}`);
-  if (!response.ok) {
-    throw new Error('Error al obtener el horario');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const createSchedule = async (scheduleData) => {
@@ -135,10 +111,7 @@ export const createSchedule = async (scheduleData) => {
     },
     body: JSON.stringify(scheduleData),
   });
-  if (!response.ok) {
-    throw new Error('Error al crear el horario');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const updateSchedule = async (id, scheduleData) => {
@@ -149,37 +122,25 @@ export const updateSchedule = async (id, scheduleData) => {
     },
     body: JSON.stringify(scheduleData),
   });
-  if (!response.ok) {
-    throw new Error('Error al actualizar el horario');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const deleteSchedule = async (id) => {
   const response = await fetch(`${API_URL}/schedules/${id}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    throw new Error('Error al eliminar el horario');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 // Funciones para reservas
 export const getReservations = async () => {
   const response = await fetch(`${API_URL}/reservations`);
-  if (!response.ok) {
-    throw new Error('Error al obtener reservas');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const getReservationById = async (id) => {
   const response = await fetch(`${API_URL}/reservations/${id}`);
-  if (!response.ok) {
-    throw new Error('Error al obtener la reserva');
-  }
-  return response.json();
+  return handleResponse(response);
 };
 
 export const createReservation = async (reservationData) => {
@@ -190,18 +151,23 @@ export const createReservation = async (reservationData) => {
     },
     body: JSON.stringify(reservationData),
   });
-  if (!response.ok) {
-    throw new Error('Error al crear la reserva');
-  }
-  return response.json();
+  return handleResponse(response);
+};
+
+export const updateReservation = async (id, reservationData) => {
+  const response = await fetch(`${API_URL}/reservations/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(reservationData),
+  });
+  return handleResponse(response);
 };
 
 export const deleteReservation = async (id) => {
   const response = await fetch(`${API_URL}/reservations/${id}`, {
     method: 'DELETE',
   });
-  if (!response.ok) {
-    throw new Error('Error al eliminar la reserva');
-  }
-  return response.json();
+  return handleResponse(response);
 };

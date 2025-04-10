@@ -1,5 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  Container, 
+  Typography, 
+  Box, 
+  TextField, 
+  Button, 
+  Paper, 
+  Grid, 
+  MenuItem,
+  Alert,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  Select
+} from '@mui/material';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { Save as SaveIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { getScheduleById, createSchedule, updateSchedule, getBuses, getRoutes } from '../../services/api';
 
 const ScheduleForm = () => {
@@ -10,8 +29,8 @@ const ScheduleForm = () => {
   const [formData, setFormData] = useState({
     busId: '',
     routeId: '',
-    departureTime: '',
-    arrivalTime: ''
+    departureTime: new Date(),
+    arrivalTime: new Date(new Date().getTime() + 60 * 60 * 1000) // 1 hour later
   });
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
@@ -32,14 +51,10 @@ const ScheduleForm = () => {
 
         if (isEditMode) {
           const scheduleData = await getScheduleById(id);
-          // Convertir las fechas ISO a formato local para los inputs datetime-local
-          const departureTime = new Date(scheduleData.departureTime).toISOString().slice(0, 16);
-          const arrivalTime = new Date(scheduleData.arrivalTime).toISOString().slice(0, 16);
-          
           setFormData({
             ...scheduleData,
-            departureTime,
-            arrivalTime
+            departureTime: new Date(scheduleData.departureTime),
+            arrivalTime: new Date(scheduleData.arrivalTime)
           });
         }
         
@@ -62,21 +77,36 @@ const ScheduleForm = () => {
     });
   };
 
+  const handleDateChange = (name) => (newValue) => {
+    setFormData({
+      ...formData,
+      [name]: newValue
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     // Validar que la hora de llegada sea posterior a la de salida
-    if (new Date(formData.arrivalTime) <= new Date(formData.departureTime)) {
+    if (formData.arrivalTime <= formData.departureTime) {
       setError('La hora de llegada debe ser posterior a la hora de salida');
       return;
     }
     
     try {
       setLoading(true);
+      
+      // Convertir fechas a formato ISO para enviar al servidor
+      const dataToSend = {
+        ...formData,
+        departureTime: formData.departureTime.toISOString(),
+        arrivalTime: formData.arrivalTime.toISOString()
+      };
+      
       if (isEditMode) {
-        await updateSchedule(id, formData);
+        await updateSchedule(id, dataToSend);
       } else {
-        await createSchedule(formData);
+        await createSchedule(dataToSend);
       }
       setLoading(false);
       navigate('/schedules');
@@ -88,98 +118,125 @@ const ScheduleForm = () => {
   };
 
   if (loading && isEditMode) {
-    return <div>Cargando...</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h2>{isEditMode ? 'Editar Horario' : 'Agregar Horario'}</h2>
-      </div>
-      <div className="card-body">
-        {error && <div className="alert alert-danger">{error}</div>}
-        
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="busId" className="form-label">Autobús</label>
-            <select
-              id="busId"
-              name="busId"
-              className="form-control"
-              value={formData.busId}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Seleccionar Autobús</option>
-              {buses.map((bus) => (
-                <option key={bus.id} value={bus.id}>
-                  {bus.busNumber} - {bus.model} ({bus.status})
-                </option>
-              ))}
-            </select>
-          </div>
+    <LocalizationProvider dateAdapter={AdapterDateFns}>
+      <Container maxWidth="md">
+        <Paper sx={{ p: 3 }}>
+          <Typography variant="h4" component="h1" gutterBottom>
+            {isEditMode ? 'Editar Horario' : 'Agregar Horario'}
+          </Typography>
           
-          <div className="form-group">
-            <label htmlFor="routeId" className="form-label">Ruta</label>
-            <select
-              id="routeId"
-              name="routeId"
-              className="form-control"
-              value={formData.routeId}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Seleccionar Ruta</option>
-              {routes.map((route) => (
-                <option key={route.id} value={route.id}>
-                  {route.routeName} ({route.origin} - {route.destination})
-                </option>
-              ))}
-            </select>
-          </div>
+          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
           
-          <div className="form-group">
-            <label htmlFor="departureTime" className="form-label">Hora de Salida</label>
-            <input
-              type="datetime-local"
-              id="departureTime"
-              name="departureTime"
-              className="form-control"
-              value={formData.departureTime}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="arrivalTime" className="form-label">Hora de Llegada</label>
-            <input
-              type="datetime-local"
-              id="arrivalTime"
-              name="arrivalTime"
-              className="form-control"
-              value={formData.arrivalTime}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Guardando...' : 'Guardar'}
-            </button>
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
-              onClick={() => navigate('/schedules')}
-              style={{ marginLeft: '10px' }}
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth margin="normal">
+                  <InputLabel id="bus-label">Autobús</InputLabel>
+                  <Select
+                    labelId="bus-label"
+                    id="busId"
+                    name="busId"
+                    value={formData.busId}
+                    onChange={handleChange}
+                    label="Autobús"
+                    required
+                  >
+                    <MenuItem value="" disabled>
+                      Seleccionar Autobús
+                    </MenuItem>
+                    {buses.map((bus) => (
+                      <MenuItem key={bus.id} value={bus.id}>
+                        {bus.busNumber} - {bus.model} ({bus.status})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth margin="normal">
+                  <InputLabel id="route-label">Ruta</InputLabel>
+                  <Select
+                    labelId="route-label"
+                    id="routeId"
+                    name="routeId"
+                    value={formData.routeId}
+                    onChange={handleChange}
+                    label="Ruta"
+                    required
+                  >
+                    <MenuItem value="" disabled>
+                      Seleccionar Ruta
+                    </MenuItem>
+                    {routes.map((route) => (
+                      <MenuItem key={route.id} value={route.id}>
+                        {route.routeName} ({route.origin} - {route.destination})
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <DateTimePicker
+                  label="Hora de Salida"
+                  value={formData.departureTime}
+                  onChange={handleDateChange('departureTime')}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      margin: "normal",
+                      required: true
+                    }
+                  }}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <DateTimePicker
+                  label="Hora de Llegada"
+                  value={formData.arrivalTime}
+                  onChange={handleDateChange('arrivalTime')}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      margin: "normal",
+                      required: true
+                    }
+                  }}
+                  minDateTime={formData.departureTime}
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    startIcon={<SaveIcon />}
+                    disabled={loading}
+                  >
+                    {loading ? 'Guardando...' : 'Guardar'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<ArrowBackIcon />}
+                    onClick={() => navigate('/schedules')}
+                  >
+                    Cancelar
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
+      </Container>
+    </LocalizationProvider>
   );
 };
 

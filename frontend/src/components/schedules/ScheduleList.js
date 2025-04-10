@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+import { 
+  Container, 
+  Typography, 
+  Button, 
+  Paper, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow,
+  IconButton,
+  Box,
+  Alert,
+  CircularProgress
+} from '@mui/material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { getSchedules, deleteSchedule } from '../../services/api';
 
 const ScheduleList = () => {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState(null);
 
   const fetchSchedules = async () => {
     try {
@@ -29,8 +45,7 @@ const ScheduleList = () => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este horario?')) {
       try {
         await deleteSchedule(id);
-        setMessage('Horario eliminado con éxito');
-        fetchSchedules();
+        fetchSchedules(); // Recargar la lista después de eliminar
       } catch (err) {
         setError('Error al eliminar el horario');
         console.error(err);
@@ -44,59 +59,81 @@ const ScheduleList = () => {
   };
 
   if (loading) {
-    return <div>Cargando...</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div>
-      <div className="card">
-        <div className="card-header">
-          <h2>Lista de Horarios</h2>
-          <Link to="/schedules/add" className="btn btn-primary">Agregar Horario</Link>
-        </div>
-        <div className="card-body">
-          {error && <div className="alert alert-danger">{error}</div>}
-          {message && <div className="alert alert-success">{message}</div>}
-          
-          {schedules.length === 0 ? (
-            <p>No hay horarios registrados.</p>
-          ) : (
-            <div className="table-container">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Autobús</th>
-                    <th>Ruta</th>
-                    <th>Salida</th>
-                    <th>Llegada</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {schedules.map((schedule) => (
-                    <tr key={schedule.id}>
-                      <td>{schedule.bus.busNumber}</td>
-                      <td>{schedule.route.routeName} ({schedule.route.origin} - {schedule.route.destination})</td>
-                      <td>{formatDateTime(schedule.departureTime)}</td>
-                      <td>{formatDateTime(schedule.arrivalTime)}</td>
-                      <td className="actions">
-                        <Link to={`/schedules/edit/${schedule.id}`} className="btn btn-secondary">Editar</Link>
-                        <button 
-                          onClick={() => handleDelete(schedule.id)} 
-                          className="btn btn-danger"
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <Container maxWidth="lg">
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Horarios
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<AddIcon />}
+          component={RouterLink}
+          to="/schedules/add"
+        >
+          Agregar Horario
+        </Button>
+      </Box>
+
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+      {schedules.length === 0 ? (
+        <Alert severity="info">No hay horarios registrados</Alert>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Ruta</TableCell>
+                <TableCell>Autobús</TableCell>
+                <TableCell>Salida</TableCell>
+                <TableCell>Llegada</TableCell>
+                <TableCell align="center">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {schedules.map((schedule) => (
+                <TableRow key={schedule.id}>
+                  <TableCell>
+                    {schedule.route.routeName} ({schedule.route.origin} - {schedule.route.destination})
+                  </TableCell>
+                  <TableCell>
+                    {schedule.bus.busNumber} - {schedule.bus.model}
+                  </TableCell>
+                  <TableCell>{formatDateTime(schedule.departureTime)}</TableCell>
+                  <TableCell>{formatDateTime(schedule.arrivalTime)}</TableCell>
+                  <TableCell align="center">
+                    <IconButton 
+                      color="primary" 
+                      component={RouterLink} 
+                      to={`/schedules/edit/${schedule.id}`}
+                      aria-label="editar"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton 
+                      color="error" 
+                      onClick={() => handleDelete(schedule.id)}
+                      aria-label="eliminar"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Container>
   );
 };
 

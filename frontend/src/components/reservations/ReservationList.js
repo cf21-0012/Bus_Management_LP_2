@@ -1,12 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+import { 
+  Container, 
+  Typography, 
+  Button, 
+  Paper, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow,
+  IconButton,
+  Box,
+  Alert,
+  CircularProgress
+} from '@mui/material';
+import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { getReservations, deleteReservation } from '../../services/api';
 
 const ReservationList = () => {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState(null);
 
   const fetchReservations = async () => {
     try {
@@ -29,8 +45,7 @@ const ReservationList = () => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta reserva?')) {
       try {
         await deleteReservation(id);
-        setMessage('Reserva eliminada con éxito');
-        fetchReservations();
+        fetchReservations(); // Recargar la lista después de eliminar
       } catch (err) {
         setError('Error al eliminar la reserva');
         console.error(err);
@@ -49,62 +64,74 @@ const ReservationList = () => {
   };
 
   if (loading) {
-    return <div>Cargando...</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div>
-      <div className="card">
-        <div className="card-header">
-          <h2>Lista de Reservas</h2>
-          <Link to="/reservations/add" className="btn btn-primary">Agregar Reserva</Link>
-        </div>
-        <div className="card-body">
-          {error && <div className="alert alert-danger">{error}</div>}
-          {message && <div className="alert alert-success">{message}</div>}
-          
-          {reservations.length === 0 ? (
-            <p>No hay reservas registradas.</p>
-          ) : (
-            <div className="table-container">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Pasajero</th>
-                    <th>Asiento</th>
-                    <th>Fecha de Reserva</th>
-                    <th>Ruta</th>
-                    <th>Autobús</th>
-                    <th>Salida</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {reservations.map((reservation) => (
-                    <tr key={reservation.id}>
-                      <td>{reservation.passengerName}</td>
-                      <td>{reservation.seatNumber}</td>
-                      <td>{formatDate(reservation.reservationDate)}</td>
-                      <td>{reservation.schedule.route.routeName}</td>
-                      <td>{reservation.schedule.bus.busNumber}</td>
-                      <td>{formatDateTime(reservation.schedule.departureTime)}</td>
-                      <td className="actions">
-                        <button 
-                          onClick={() => handleDelete(reservation.id)} 
-                          className="btn btn-danger"
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <Container maxWidth="lg">
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Reservas
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<AddIcon />}
+          component={RouterLink}
+          to="/reservations/add"
+        >
+          Agregar Reserva
+        </Button>
+      </Box>
+
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+      {reservations.length === 0 ? (
+        <Alert severity="info">No hay reservas registradas</Alert>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Pasajero</TableCell>
+                <TableCell>Asiento</TableCell>
+                <TableCell>Fecha de Reserva</TableCell>
+                <TableCell>Ruta</TableCell>
+                <TableCell>Salida</TableCell>
+                <TableCell align="center">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {reservations.map((reservation) => (
+                <TableRow key={reservation.id}>
+                  <TableCell>{reservation.passengerName}</TableCell>
+                  <TableCell>{reservation.seatNumber}</TableCell>
+                  <TableCell>{formatDate(reservation.reservationDate)}</TableCell>
+                  <TableCell>
+                    {reservation.schedule.route.routeName} 
+                    ({reservation.schedule.route.origin} - {reservation.schedule.route.destination})
+                  </TableCell>
+                  <TableCell>{formatDateTime(reservation.schedule.departureTime)}</TableCell>
+                  <TableCell align="center">
+                    <IconButton 
+                      color="error" 
+                      onClick={() => handleDelete(reservation.id)}
+                      aria-label="eliminar"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Container>
   );
 };
 

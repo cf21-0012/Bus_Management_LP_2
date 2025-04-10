@@ -1,12 +1,29 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
+import { 
+  Container, 
+  Typography, 
+  Button, 
+  Paper, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow,
+  IconButton,
+  Box,
+  Alert,
+  CircularProgress,
+  Chip
+} from '@mui/material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { getBuses, deleteBus } from '../../services/api';
 
 const BusList = () => {
   const [buses, setBuses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [message, setMessage] = useState(null);
 
   const fetchBuses = async () => {
     try {
@@ -29,8 +46,7 @@ const BusList = () => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este autobús?')) {
       try {
         await deleteBus(id);
-        setMessage('Autobús eliminado con éxito');
-        fetchBuses();
+        fetchBuses(); // Recargar la lista después de eliminar
       } catch (err) {
         setError('Error al eliminar el autobús');
         console.error(err);
@@ -38,62 +54,102 @@ const BusList = () => {
     }
   };
 
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+      case 'activo':
+        return 'success';
+      case 'maintenance':
+      case 'mantenimiento':
+        return 'warning';
+      case 'out of service':
+      case 'fuera de servicio':
+        return 'error';
+      default:
+        return 'default';
+    }
+  };
+
   if (loading) {
-    return <div>Cargando...</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div>
-      <div className="card">
-        <div className="card-header">
-          <h2>Lista de Autobuses</h2>
-          <Link to="/buses/add" className="btn btn-primary">Agregar Autobús</Link>
-        </div>
-        <div className="card-body">
-          {error && <div className="alert alert-danger">{error}</div>}
-          {message && <div className="alert alert-success">{message}</div>}
-          
-          {buses.length === 0 ? (
-            <p>No hay autobuses registrados.</p>
-          ) : (
-            <div className="table-container">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Número</th>
-                    <th>Modelo</th>
-                    <th>Capacidad</th>
-                    <th>Año</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {buses.map((bus) => (
-                    <tr key={bus.id}>
-                      <td>{bus.busNumber}</td>
-                      <td>{bus.model}</td>
-                      <td>{bus.capacity}</td>
-                      <td>{bus.year}</td>
-                      <td>{bus.status}</td>
-                      <td className="actions">
-                        <Link to={`/buses/edit/${bus.id}`} className="btn btn-secondary">Editar</Link>
-                        <button 
-                          onClick={() => handleDelete(bus.id)} 
-                          className="btn btn-danger"
-                        >
-                          Eliminar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+    <Container maxWidth="lg">
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4" component="h1">
+          Autobuses
+        </Typography>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<AddIcon />}
+          component={RouterLink}
+          to="/buses/add"
+        >
+          Agregar Autobús
+        </Button>
+      </Box>
+
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+      {buses.length === 0 ? (
+        <Alert severity="info">No hay autobuses registrados</Alert>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Número</TableCell>
+                <TableCell>Modelo</TableCell>
+                <TableCell>Capacidad</TableCell>
+                <TableCell>Año</TableCell>
+                <TableCell>Estado</TableCell>
+                <TableCell align="center">Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {buses.map((bus) => (
+                <TableRow key={bus.id}>
+                  <TableCell>{bus.busNumber}</TableCell>
+                  <TableCell>{bus.model}</TableCell>
+                  <TableCell>{bus.capacity}</TableCell>
+                  <TableCell>{bus.year}</TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={bus.status} 
+                      color={getStatusColor(bus.status)} 
+                      size="small" 
+                    />
+                  </TableCell>
+                  <TableCell align="center">
+                    <IconButton 
+                      color="primary" 
+                      component={RouterLink} 
+                      to={`/buses/edit/${bus.id}`}
+                      aria-label="editar"
+                    >
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton 
+                      color="error" 
+                      onClick={() => handleDelete(bus.id)}
+                      aria-label="eliminar"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+    </Container>
   );
 };
 

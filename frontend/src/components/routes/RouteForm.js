@@ -1,5 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  Container, 
+  Typography, 
+  Box, 
+  TextField, 
+  Button, 
+  Paper, 
+  Grid, 
+  Alert,
+  CircularProgress
+} from '@mui/material';
+import { Save as SaveIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { getRouteById, createRoute, updateRoute } from '../../services/api';
 
 const RouteForm = () => {
@@ -47,11 +59,13 @@ const RouteForm = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      
       if (isEditMode) {
         await updateRoute(id, formData);
       } else {
         await createRoute(formData);
       }
+      
       setLoading(false);
       navigate('/routes');
     } catch (err) {
@@ -62,88 +76,94 @@ const RouteForm = () => {
   };
 
   if (loading && isEditMode) {
-    return <div>Cargando...</div>;
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
   }
 
   return (
-    <div className="card">
-      <div className="card-header">
-        <h2>{isEditMode ? 'Editar Ruta' : 'Agregar Ruta'}</h2>
-      </div>
-      <div className="card-body">
-        {error && <div className="alert alert-danger">{error}</div>}
+    <Container maxWidth="md">
+      <Paper sx={{ p: 3 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          {isEditMode ? 'Editar Ruta' : 'Agregar Ruta'}
+        </Typography>
         
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="routeName" className="form-label">Nombre de la Ruta</label>
-            <input
-              type="text"
-              id="routeName"
-              name="routeName"
-              className="form-control"
-              value={formData.routeName}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="origin" className="form-label">Origen</label>
-            <input
-              type="text"
-              id="origin"
-              name="origin"
-              className="form-control"
-              value={formData.origin}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="destination" className="form-label">Destino</label>
-            <input
-              type="text"
-              id="destination"
-              name="destination"
-              className="form-control"
-              value={formData.destination}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="distance" className="form-label">Distancia (km)</label>
-            <input
-              type="number"
-              id="distance"
-              name="distance"
-              className="form-control"
-              value={formData.distance}
-              onChange={handleChange}
-              required
-              min="0"
-              step="0.1"
-            />
-          </div>
-          
-          <div className="form-group">
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading ? 'Guardando...' : 'Guardar'}
-            </button>
-            <button 
-              type="button" 
-              className="btn btn-secondary" 
-              onClick={() => navigate('/routes')}
-              style={{ marginLeft: '10px' }}
-            >
-              Cancelar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        
+        <Box component="form" onSubmit={handleSubmit} noValidate>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                name="routeName"
+                label="Nombre de Ruta"
+                value={formData.routeName}
+                onChange={handleChange}
+                fullWidth
+                required
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="origin"
+                label="Origen"
+                value={formData.origin}
+                onChange={handleChange}
+                fullWidth
+                required
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="destination"
+                label="Destino"
+                value={formData.destination}
+                onChange={handleChange}
+                fullWidth
+                required
+                margin="normal"
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                name="distance"
+                label="Distancia (km)"
+                type="number"
+                value={formData.distance}
+                onChange={handleChange}
+                fullWidth
+                required
+                margin="normal"
+                inputProps={{ min: 0, step: 0.1 }}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  startIcon={<SaveIcon />}
+                  disabled={loading}
+                >
+                  {loading ? 'Guardando...' : 'Guardar'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<ArrowBackIcon />}
+                  onClick={() => navigate('/routes')}
+                >
+                  Cancelar
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 
