@@ -45,7 +45,7 @@ const ReservationList = () => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta reserva?')) {
       try {
         await deleteReservation(id);
-        fetchReservations(); // Recargar la lista después de eliminar
+        fetchReservations();
       } catch (err) {
         setError('Error al eliminar la reserva');
         console.error(err);

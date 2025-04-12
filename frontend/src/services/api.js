@@ -1,7 +1,6 @@
-// URL base de la API
+// Ruta del API.
 const API_URL = 'http://localhost:5000';
 
-// Función auxiliar para manejar las respuestas de fetch
 const handleResponse = async (response) => {
   if (!response.ok) {
     const error = await response.json().catch(() => ({
@@ -12,7 +11,7 @@ const handleResponse = async (response) => {
   return response.json();
 };
 
-// Funciones para autobuses
+// Gestión de autobuses.
 export const getBuses = async () => {
   const response = await fetch(`${API_URL}/buses`);
   return handleResponse(response);
@@ -52,7 +51,7 @@ export const deleteBus = async (id) => {
   return handleResponse(response);
 };
 
-// Funciones para rutas
+// Gestión de rutas.
 export const getRoutes = async () => {
   const response = await fetch(`${API_URL}/routes`);
   return handleResponse(response);
@@ -92,7 +91,7 @@ export const deleteRoute = async (id) => {
   return handleResponse(response);
 };
 
-// Funciones para horarios
+// Gestión de horarios.
 export const getSchedules = async () => {
   const response = await fetch(`${API_URL}/schedules`);
   return handleResponse(response);
@@ -132,7 +131,7 @@ export const deleteSchedule = async (id) => {
   return handleResponse(response);
 };
 
-// Funciones para reservas
+// Gestión de Reservas de horarios.
 export const getReservations = async () => {
   const response = await fetch(`${API_URL}/reservations`);
   return handleResponse(response);

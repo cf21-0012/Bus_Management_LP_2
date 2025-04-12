@@ -71,7 +71,6 @@ const ReservationForm = () => {
     try {
       setLoading(true);
       
-      // Convertir fecha a formato ISO para enviar al servidor
       const dataToSend = {
         ...formData,
         reservationDate: formData.reservationDate.toISOString()

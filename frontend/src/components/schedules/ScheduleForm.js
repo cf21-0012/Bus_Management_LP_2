@@ -87,7 +87,6 @@ const ScheduleForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validar que la hora de llegada sea posterior a la de salida
     if (formData.arrivalTime <= formData.departureTime) {
       setError('La hora de llegada debe ser posterior a la hora de salida');
       return;
@@ -96,7 +95,6 @@ const ScheduleForm = () => {
     try {
       setLoading(true);
       
-      // Convertir fechas a formato ISO para enviar al servidor
       const dataToSend = {
         ...formData,
         departureTime: formData.departureTime.toISOString(),

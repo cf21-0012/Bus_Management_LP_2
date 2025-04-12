@@ -5,15 +5,15 @@ from datetime import datetime
 import os
 
 app = Flask(__name__)
-CORS(app)  # Habilitar CORS para todas las rutas
+CORS(app) 
 
-# Configuración de la base de datos PostgreSQL
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:admin1234@localhost/bus_management'
+# Configuración de la base de datos PostgreSQL desde la nube.
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://bus_management_user:mhIkiyA5M6kqBUdVb4HVkrMgg2KafAxi@dpg-cvs1j7ggjchc73an2fh0-a.oregon-postgres.render.com/bus_management' #Esta ruta es de una instancia de PostgreSQL en la nube de render.com.
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# Modelos
+# Modelos de la DB.
 class Bus(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     busNumber = db.Column(db.String(20), unique=True, nullable=False)
@@ -46,11 +46,10 @@ class Reservation(db.Model):
     seatNumber = db.Column(db.Integer, nullable=False)
     reservationDate = db.Column(db.Date, nullable=False)
 
-# Crear las tablas en la base de datos
 with app.app_context():
     db.create_all()
 
-# Rutas para Autobuses
+# Endpoints para Buses.
 @app.route('/buses', methods=['GET'])
 def get_buses():
     buses = Bus.query.all()
@@ -128,7 +127,7 @@ def delete_bus(id):
     db.session.commit()
     return jsonify({'message': 'Bus deleted successfully'})
 
-# Rutas para Rutas
+# Endpoints para Rutas.
 @app.route('/routes', methods=['GET'])
 def get_routes():
     routes = Route.query.all()
@@ -200,7 +199,7 @@ def delete_route(id):
     db.session.commit()
     return jsonify({'message': 'Route deleted successfully'})
 
-# Rutas para Horarios
+# Endpoints para Horarios.
 @app.route('/schedules', methods=['GET'])
 def get_schedules():
     schedules = Schedule.query.all()
@@ -299,7 +298,7 @@ def delete_schedule(id):
     db.session.commit()
     return jsonify({'message': 'Schedule deleted successfully'})
 
-# Rutas para Reservas
+# Endpoints para Reservas de Horarios.
 @app.route('/reservations', methods=['GET'])
 def get_reservations():
     reservations = Reservation.query.all()

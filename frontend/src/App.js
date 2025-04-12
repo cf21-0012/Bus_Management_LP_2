@@ -4,10 +4,8 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import Box from '@mui/material/Box';
 
-// Componentes de navegación
 import Navbar from './components/layout/Navbar';
-
-// Importar componentes
+import Footer from './components/layout/Footer'; 
 import Dashboard from './components/Dashboard';
 import BusList from './components/buses/BusList';
 import BusForm from './components/buses/BusForm';
@@ -18,7 +16,6 @@ import ScheduleForm from './components/schedules/ScheduleForm';
 import ReservationList from './components/reservations/ReservationList';
 import ReservationForm from './components/reservations/ReservationForm';
 
-// Crear tema personalizado
 const theme = createTheme({
   palette: {
     primary: {
@@ -80,6 +77,7 @@ function App() {
               <Route path="/reservations/add" element={<ReservationForm />} />
             </Routes>
           </Box>
+          <Footer />
         </Box>
       </Router>
     </ThemeProvider>

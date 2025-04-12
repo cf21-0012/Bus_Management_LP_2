@@ -45,7 +45,7 @@ const RouteList = () => {
     if (window.confirm('¿Estás seguro de que deseas eliminar esta ruta?')) {
       try {
         await deleteRoute(id);
-        fetchRoutes(); // Recargar la lista después de eliminar
+        fetchRoutes();
       } catch (err) {
         setError('Error al eliminar la ruta');
         console.error(err);

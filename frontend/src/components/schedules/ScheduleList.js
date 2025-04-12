@@ -45,7 +45,7 @@ const ScheduleList = () => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este horario?')) {
       try {
         await deleteSchedule(id);
-        fetchSchedules(); // Recargar la lista después de eliminar
+        fetchSchedules();
       } catch (err) {
         setError('Error al eliminar el horario');
         console.error(err);
